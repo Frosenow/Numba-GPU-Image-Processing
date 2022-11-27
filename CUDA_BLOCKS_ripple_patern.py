@@ -38,7 +38,7 @@ def blobs_2d_wrong(array2d):
     array2d[iy, ix] = shared[15 - tiy, 15 - tix]
 
 
-N_img = 16
+N_img = 1024
 blocks = (N_img // threads_16, N_img // threads_16)
 threads = (threads_16, threads_16)
 
@@ -54,7 +54,9 @@ image_wrong = dev_image_wrong.copy_to_host()
 
 fig, (ax1, ax2) = plt.subplots(1, 2)
 ax1.imshow(image.T, cmap="nipy_spectral")
+ax1.set_title('Blocks distribution with sync.')
 ax2.imshow(image_wrong.T, cmap="nipy_spectral")
+ax2.set_title('Blocks distribution without sync.')
 for ax in (ax1, ax2):
     ax.set_xticks([])
     ax.set_yticks([])
