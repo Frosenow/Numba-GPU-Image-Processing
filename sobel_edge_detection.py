@@ -11,7 +11,7 @@ def display_img(img, title):
     plt.title(title)
     plt.show() 
 
-img = rgb2gray(skimage.data.astronaut())
+img = rgb2gray(skimage.data.coffee())
 display_img(img, "Image used for edge detection")
 
 vertical_sobel_filter = [[-1, -2, -1],
@@ -22,7 +22,7 @@ horizontal_sobel_filter = [[-1, 0, 1],
                             [-2, 0, 2],
                             [-1, 0, 1]]
 
-n_cols, n_rows = img.shape
+n_rows, n_cols = img.shape
 
 # VERTICAL EDGE DETECTION 
 vertical_edges_img = np.zeros_like(img)
