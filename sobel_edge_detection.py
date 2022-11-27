@@ -18,15 +18,15 @@ vertical_sobel_filter = [[-1, -2, -1],
                          [0, 0, 0],
                          [1, 2, 1]]
 
-horizontal_sobler_filter = [[-1, 0, 1],
+horizontal_sobel_filter = [[-1, 0, 1],
                             [-2, 0, 2],
                             [-1, 0, 1]]
 
 n_cols, n_rows = img.shape
 
+# VERTICAL EDGE DETECTION 
 vertical_edges_img = np.zeros_like(img)
 
-# VERTICAL EDGE DETECTION 
 for row in range(3, n_rows - 2): # Ignoring the edges (TOP, BOTTOM)
     for col in range(3, n_cols - 2): # Ignoring the edges (LEFT, RIGHT)
         local_pixels = img[row-1:row+2, col-1:col+2] # Creating 3x3 box filter
@@ -34,6 +34,33 @@ for row in range(3, n_rows - 2): # Ignoring the edges (TOP, BOTTOM)
         vertical_score = (transformed_pixels.sum() + 4)/8 # Normalization to get values [0;1]
         vertical_edges_img[row, col] = vertical_score
 
-display_img(vertical_edges_img, "After using vertical edge detection")
+display_img(vertical_edges_img, "After using vertical Sobel Filter")
 
 # HORIZONTAL EDGE DETECION
+horizontal_edges_img = np.zeros_like(img)
+for row in range(3, n_rows - 2):
+    for col in range(3, n_cols - 2):
+        local_pixels = img[row-1:row+2, col-1:col+2] 
+        transformed_pixels = horizontal_sobel_filter * local_pixels 
+        horizontal_score = (transformed_pixels.sum() + 4)/8 
+        horizontal_edges_img[row, col] = horizontal_score
+
+display_img(horizontal_edges_img, "After using horizontal Sobel filter")
+
+# APPLAYING BOTH FILTERS 
+edges_img = np.zeros_like(img)
+
+for row in range(3, n_rows - 2):
+    for col in range(3, n_cols - 2):
+        local_pixels = img[row-1:row+2, col-1:col+2]
+        
+        vertical_transformed_pixels = vertical_sobel_filter * local_pixels 
+        vertical_score = (vertical_transformed_pixels.sum())/4
+        
+        horizontal_transformed_pixels = horizontal_sobel_filter * local_pixels 
+        horizontal_score = (horizontal_transformed_pixels.sum())/4
+
+        edge_score = (vertical_score ** 2 + horizontal_score ** 2)**.5
+        edges_img[row, col] = edge_score
+
+display_img(edges_img, "After vertical and horizontal Sobel filter")
