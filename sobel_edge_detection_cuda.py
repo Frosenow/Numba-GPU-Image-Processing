@@ -1,10 +1,9 @@
-import numba 
 import numpy as np 
 import matplotlib.pyplot as plt
 from numba import cuda
-import matplotlib.pyplot as plt 
 import skimage.data
 from skimage.color import rgb2gray 
+import math 
 
 
 def display_img(img, title):
@@ -13,19 +12,29 @@ def display_img(img, title):
     plt.title(title)
     plt.show() 
 
-img = rgb2gray(skimage.data.coffee())
+@cuda.jit
+def sobel_filter(img):
+    y, x = cuda.grid(2)
+    if x >= img.shape[1] or y >= img.shape[0]:
+        return
 
-Gx = np.array([[1.0, 0.0, -1.0], [2.0, 0.0, -2.0], [1.0, 0.0, -1.0]])
-Gy = np.array([[1.0, 2.0, 1.0], [0.0, 0.0, 0.0], [-1.0, -2.0, -1.0]])
+    # compute Sobel filter
+    sobel_x = (img[y-1, x-1] + 2*img[y, x-1] + img[y+1, x-1]) - (img[y-1, x+1] + 2*img[y, x+1] + img[y+1, x+1])
+    sobel_y = (img[y-1, x-1] + 2*img[y-1, x] + img[y-1, x+1]) - (img[y+1, x-1] + 2*img[y+1, x] + img[y+1, x+1])
+    img[y, x] = math.sqrt(sobel_x**2 + sobel_y**2)
+    
+# input image
+img = rgb2gray(skimage.data.coffee().astype(np.float32) / 255.)
+height, width = img.shape
 
-[rows, columns] = np.shape(img)
-sobel_filtered_image = np.zeros(shape=(rows, columns))
+threads = 256
+threads_per_block = (threads, threads); 
+blocks_per_grid = (height // threads, width // threads)
 
-for i in range(rows - 2):
-    for j in range(columns - 2):
-        gx = np.sum(np.multiply(Gx, img[i:i + 3, j:j + 3]))  # x direction
-        gy = np.sum(np.multiply(Gy, img[i:i + 3, j:j + 3]))  # y direction
-        sobel_filtered_image[i + 1, j + 1] = np.sqrt(gx ** 2 + gy ** 2)  # calculate the "hypotenuse"
+# apply Sobel filter
+filtered_img = cuda.to_device(img)
+sobel_filter[(64, 64), (16, 16)](filtered_img)
+filtered_img.copy_to_host()
 
-
-
+# print output
+display_img(filtered_img, 'title')
