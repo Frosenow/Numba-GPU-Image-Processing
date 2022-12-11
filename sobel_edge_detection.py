@@ -64,3 +64,6 @@ for row in range(3, n_rows - 2):
         edges_img[row, col] = edge_score
 
 display_img(edges_img, "After vertical and horizontal Sobel filter")
+
+blockdim = (32, 32)
+griddim = (img.shape[0] // blockdim[0] + 1, img.shape[1] // blockdim[1] + 1)
