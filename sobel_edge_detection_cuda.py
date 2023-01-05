@@ -14,15 +14,15 @@ def display_img(img, title):
     plt.show() 
 
 @cuda.jit
-def sobel_filter(img):
-    y, x = cuda.grid(2)
-    if x >= img.shape[1] or y >= img.shape[0]:
-        return
-
-    # compute Sobel filter
-    sobel_x = (img[y-1, x-1] + 2*img[y, x-1] + img[y+1, x-1]) - (img[y-1, x+1] + 2*img[y, x+1] + img[y+1, x+1])
-    sobel_y = (img[y-1, x-1] + 2*img[y-1, x] + img[y-1, x+1]) - (img[y+1, x-1] + 2*img[y+1, x] + img[y+1, x+1])
-    img[y, x] = math.sqrt(sobel_x**2 + sobel_y**2)
+def sobel_filter(img, result):
+    x, y = cuda.grid(2)
+    height, width = img.shape
+    if x < height and y < width:
+        # Compute the gradient magnitude using the Sobel operator
+        dx = (img[x-1, y-1] + 2*img[x, y-1] + img[x+1, y-1]) - (img[x-1, y+1] + 2*img[x, y+1] + img[x+1, y+1])
+        dy = (img[x-1, y-1] + 2*img[x-1, y] + img[x-1, y+1]) - (img[x+1, y-1] + 2*img[x+1, y] + img[x+1, y+1])
+        # Multiply by 4 to rescale the gradient magnitudes 
+        result[x, y] = 4 * math.sqrt(dx**2 + dy**2)   
     
 # input image
 # Image used for timing (3988x5982px)
@@ -31,19 +31,23 @@ img = rgb2gray(image.imread('4kMountains.jpg').astype(np.float32) / 255.)
 # Image used for testing (512x512px)
 # img = rgb2gray(skimage.data.coffee().astype(np.float32) / 255.)
 
-
-height, width = img.shape
-
 display_img(img, "Image used for edge detection")
 
-threads = 256
-threads_per_block = (threads, threads); 
-blocks_per_grid = (height // threads, width // threads)
+# Calculate the grid and block dimensions 
+grid_dim = (int(np.ceil(img.shape[0] / 32)), int(np.ceil(img.shape[1] / 32)))
+block_dim = (32, 32)
 
-# apply Sobel filter
-filtered_img = cuda.to_device(img)
-sobel_filter[(64, 64), (16, 16)](filtered_img)
-filtered_img.copy_to_host()
+# Allocate space for the result on the device (GPU)
+result_dev = cuda.device_array_like(img)
 
-# print output
-display_img(filtered_img, 'Image after filtration')
+# Copy the input image to the device 
+img_dev = cuda.to_device(img)
+
+# Apply Sobel filter by calling the CUDA kernel 
+sobel_filter[grid_dim, block_dim](img_dev, result_dev)
+
+# Copy the result from device (GPU) back to the host 
+result = result_dev.copy_to_host()
+
+# Print output
+display_img(result, 'Image after filtration')
