@@ -4,6 +4,7 @@ from numba import cuda
 import skimage.data
 from skimage.color import rgb2gray 
 import math 
+from matplotlib import image
 
 
 def display_img(img, title):
@@ -24,8 +25,16 @@ def sobel_filter(img):
     img[y, x] = math.sqrt(sobel_x**2 + sobel_y**2)
     
 # input image
-img = rgb2gray(skimage.data.coffee().astype(np.float32) / 255.)
+# Image used for timing (3988x5982px)
+img = rgb2gray(image.imread('4kMountains.jpg').astype(np.float32) / 255.)
+
+# Image used for testing (512x512px)
+# img = rgb2gray(skimage.data.coffee().astype(np.float32) / 255.)
+
+
 height, width = img.shape
+
+display_img(img, "Image used for edge detection")
 
 threads = 256
 threads_per_block = (threads, threads); 
@@ -37,4 +46,4 @@ sobel_filter[(64, 64), (16, 16)](filtered_img)
 filtered_img.copy_to_host()
 
 # print output
-display_img(filtered_img, 'title')
+display_img(filtered_img, 'Image after filtration')

@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt 
 import skimage.data
 from skimage.color import rgb2gray 
+from PIL import Image 
 
 def display_img(img, title):
     plt.figure()
@@ -11,7 +12,13 @@ def display_img(img, title):
     plt.title(title)
     plt.show() 
 
-img = rgb2gray(skimage.data.coffee())
+
+# input image
+# Image used for timing (3988x5982px)
+img = rgb2gray(Image.open('4kMountains.jpg'))
+
+# Image used for testing (512x512px)
+# img = rgb2gray(skimage.data.coffee()) 
 display_img(img, "Image used for edge detection")
 
 vertical_sobel_filter = [[-1, -2, -1],
@@ -25,27 +32,27 @@ horizontal_sobel_filter = [[-1, 0, 1],
 n_rows, n_cols = img.shape
 
 # VERTICAL EDGE DETECTION 
-vertical_edges_img = np.zeros_like(img)
+# vertical_edges_img = np.zeros_like(img)
 
-for row in range(3, n_rows - 2): # Ignoring the edges (TOP, BOTTOM)
-    for col in range(3, n_cols - 2): # Ignoring the edges (LEFT, RIGHT)
-        local_pixels = img[row-1:row+2, col-1:col+2] # Creating 3x3 box filter
-        transformed_pixels = vertical_sobel_filter * local_pixels 
-        vertical_score = (transformed_pixels.sum() + 4)/8 # Normalization to get values [0;1]
-        vertical_edges_img[row, col] = vertical_score
+# for row in range(3, n_rows - 2): # Ignoring the edges (TOP, BOTTOM)
+#     for col in range(3, n_cols - 2): # Ignoring the edges (LEFT, RIGHT)
+#         local_pixels = img[row-1:row+2, col-1:col+2] # Creating 3x3 box filter
+#         transformed_pixels = vertical_sobel_filter * local_pixels 
+#         vertical_score = (transformed_pixels.sum() + 4)/8 # Normalization to get values [0;1]
+#         vertical_edges_img[row, col] = vertical_score
 
-display_img(vertical_edges_img, "After using vertical Sobel Filter")
+# display_img(vertical_edges_img, "After using vertical Sobel Filter")
 
 # HORIZONTAL EDGE DETECION
-horizontal_edges_img = np.zeros_like(img)
-for row in range(3, n_rows - 2):
-    for col in range(3, n_cols - 2):
-        local_pixels = img[row-1:row+2, col-1:col+2] 
-        transformed_pixels = horizontal_sobel_filter * local_pixels 
-        horizontal_score = (transformed_pixels.sum() + 4)/8 
-        horizontal_edges_img[row, col] = horizontal_score
+# horizontal_edges_img = np.zeros_like(img)
+# for row in range(3, n_rows - 2):
+#     for col in range(3, n_cols - 2):
+#         local_pixels = img[row-1:row+2, col-1:col+2] 
+#         transformed_pixels = horizontal_sobel_filter * local_pixels 
+#         horizontal_score = (transformed_pixels.sum() + 4)/8 
+#         horizontal_edges_img[row, col] = horizontal_score
 
-display_img(horizontal_edges_img, "After using horizontal Sobel filter")
+# display_img(horizontal_edges_img, "After using horizontal Sobel filter")
 
 # APPLAYING BOTH FILTERS 
 edges_img = np.zeros_like(img)
