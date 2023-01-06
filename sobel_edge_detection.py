@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import skimage.data
 from skimage.color import rgb2gray 
 from PIL import Image 
+from time import perf_counter_ns
 
 def display_img(img, title):
     plt.figure()
@@ -55,6 +56,8 @@ n_rows, n_cols = img.shape
 # display_img(horizontal_edges_img, "After using horizontal Sobel filter")
 
 # APPLAYING BOTH FILTERS 
+start_time = perf_counter_ns()
+
 edges_img = np.zeros_like(img)
 
 for row in range(3, n_rows - 2):
@@ -70,7 +73,10 @@ for row in range(3, n_rows - 2):
         edge_score = (vertical_score ** 2 + horizontal_score ** 2)**.5
         edges_img[row, col] = edge_score
 
-display_img(edges_img, "After vertical and horizontal Sobel filter")
+end_time = perf_counter_ns()
+runtime = end_time - start_time
+runtime *= 1e-9
 
-blockdim = (32, 32)
-griddim = (img.shape[0] // blockdim[0] + 1, img.shape[1] // blockdim[1] + 1)
+display_img(edges_img, "After vertical and horizontal Sobel filter")
+print(f"Estimated runtime: {runtime:.8f}")
+

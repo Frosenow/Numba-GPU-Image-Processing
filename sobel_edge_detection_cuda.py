@@ -5,6 +5,7 @@ import skimage.data
 from skimage.color import rgb2gray 
 import math 
 from matplotlib import image
+from time import perf_counter_ns
 
 
 def display_img(img, title):
@@ -45,9 +46,21 @@ img_dev = cuda.to_device(img)
 
 # Apply Sobel filter by calling the CUDA kernel 
 sobel_filter[grid_dim, block_dim](img_dev, result_dev)
+cuda.synchronize() #clear gpu from tasks
+
+#measuring run time without compilation time
+timing = np.empty(101)
+for i in range(timing.size):
+    start_time = perf_counter_ns()
+    sobel_filter[grid_dim, block_dim](img_dev, result_dev)
+    cuda.synchronize()
+    end_time = perf_counter_ns()
+    timing[i] = end_time-start_time
+timing *= 1e-9
 
 # Copy the result from device (GPU) back to the host 
 result = result_dev.copy_to_host()
 
 # Print output
 display_img(result, 'Image after filtration')
+print(f"Elapsed time: {timing.mean():.8f} +- {timing.std():.8f} s")
